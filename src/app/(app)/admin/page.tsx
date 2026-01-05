@@ -16,6 +16,7 @@ import {
   Mail,
   Phone,
   MessageSquare,
+  PlusCircle,
 } from "lucide-react";
 import {
   Card,
@@ -43,6 +44,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
+  DialogClose
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -51,7 +53,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cases, dcas, timetable } from "@/lib/data";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+
 import type { Case, Dca } from "@/lib/types";
 import { prioritizeCases } from "@/ai/flows/prioritize-cases";
 import { analyzeDcaPerformance } from "@/ai/flows/analyze-dca-performance";
@@ -65,6 +70,11 @@ import {
   Tooltip,
 } from "recharts";
 import { format } from "date-fns";
+import { useAppContext } from "@/context/app-context";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
 
 type PriorityResult = {
   priorityScore: number;
@@ -76,8 +86,19 @@ type DcaAnalysisResult = {
   recommendedAssignments: string;
 };
 
+const newCaseSchema = z.object({
+  debtorName: z.string().min(1, "Debtor name is required"),
+  dueAmount: z.coerce.number().min(1, "Due amount must be positive"),
+  dueDate: z.string().min(1, "Due date is required"),
+  pastHistory: z.string().min(1, "Past history is required"),
+  hasOverdueHistory: z.boolean(),
+});
+
+type NewCaseForm = z.infer<typeof newCaseSchema>;
+
 export default function AdminDashboard() {
   const { toast } = useToast();
+  const { cases, dcas, timetable, addCase, updateCase } = useAppContext();
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
   const [selectedDca, setSelectedDca] = useState<Dca | null>(null);
   const [priorityResult, setPriorityResult] = useState<PriorityResult | null>(
@@ -88,6 +109,20 @@ export default function AdminDashboard() {
   const [isPrioritizing, setIsPrioritizing] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [assignedDca, setAssignedDca] = useState<string | null>(null);
+  const [isAddCaseOpen, setIsAddCaseOpen] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors },
+  } = useForm<NewCaseForm>({
+    resolver: zodResolver(newCaseSchema),
+    defaultValues: {
+      hasOverdueHistory: false
+    }
+  });
 
   const totalDue = cases.reduce((sum, c) => sum + c.dueAmount, 0);
   const overdueCases = cases.filter(
@@ -114,6 +149,8 @@ export default function AdminDashboard() {
         hasOverdueHistory: selectedCase.hasOverdueHistory,
       });
       setPriorityResult(result);
+      // Update the case in context
+      updateCase(selectedCase.id, { priorityScore: result.priorityScore });
     } catch (error) {
       console.error("Prioritization failed:", error);
       toast({
@@ -149,9 +186,8 @@ export default function AdminDashboard() {
   };
   
   const handleAssignDCA = () => {
-    // In a real app, this would update the database.
-    // For now, we just show a success toast.
     if(selectedCase && assignedDca) {
+      updateCase(selectedCase.id, { assignedDcaId: assignedDca });
       toast({
         title: "Case Assigned",
         description: `${selectedCase.debtorName}'s case has been assigned to ${dcas.find(d => d.id === assignedDca)?.name}.`,
@@ -159,12 +195,88 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleAddCase = (data: NewCaseForm) => {
+    const newCase: Case = {
+      id: `case-${Date.now()}`,
+      status: 'Pending',
+      priorityScore: null,
+      assignedDcaId: null,
+      overdueAging: 0, // Assuming new cases start at 0
+      recoveryRate: 0.8, // Default assumption
+      communicationHistory: 'No contact made yet.',
+      ...data,
+    };
+    addCase(newCase);
+    toast({
+      title: "Case Created",
+      description: `New case for ${data.debtorName} has been added.`,
+    });
+    reset();
+    setIsAddCaseOpen(false);
+  }
+
   return (
     <>
-      <div className="flex items-center">
+      <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold md:text-2xl font-headline">
           Admin Dashboard
         </h1>
+        <Dialog open={isAddCaseOpen} onOpenChange={setIsAddCaseOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Case
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add New Case</DialogTitle>
+              <DialogDescription>
+                Fill in the details for the new debt collection case.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit(handleAddCase)}>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="debtorName" className="text-right">Debtor Name</Label>
+                  <Input id="debtorName" {...register("debtorName")} className="col-span-3" />
+                  {errors.debtorName && <p className="col-span-4 text-xs text-destructive text-right">{errors.debtorName.message}</p>}
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="dueAmount" className="text-right">Amount</Label>
+                  <Input id="dueAmount" type="number" {...register("dueAmount")} className="col-span-3" />
+                   {errors.dueAmount && <p className="col-span-4 text-xs text-destructive text-right">{errors.dueAmount.message}</p>}
+                </div>
+                 <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="dueDate" className="text-right">Due Date</Label>
+                  <Input id="dueDate" type="date" {...register("dueDate")} className="col-span-3" />
+                  {errors.dueDate && <p className="col-span-4 text-xs text-destructive text-right">{errors.dueDate.message}</p>}
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="pastHistory" className="text-right">History</Label>
+                  <Textarea id="pastHistory" {...register("pastHistory")} className="col-span-3" />
+                  {errors.pastHistory && <p className="col-span-4 text-xs text-destructive text-right">{errors.pastHistory.message}</p>}
+                </div>
+                 <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="hasOverdueHistory" className="text-right">Prev. Overdue</Label>
+                  <Controller
+                    name="hasOverdueHistory"
+                    control={control}
+                    render={({ field }) => (
+                      <input type="checkbox" checked={field.value} onChange={field.onChange} className="col-span-3" />
+                    )}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="secondary">Cancel</Button>
+                </DialogClose>
+                <Button type="submit">Create Case</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
       <Tabs defaultValue="overview">
         <TabsList className="grid w-full grid-cols-4">
@@ -336,8 +448,12 @@ export default function AdminDashboard() {
                               </Select>
                             </div>
                             <DialogFooter>
-                              <Button variant="secondary">Cancel</Button>
-                              <Button onClick={handleAssignDCA}>Assign Case</Button>
+                              <DialogClose asChild>
+                                <Button variant="secondary">Cancel</Button>
+                              </DialogClose>
+                              <DialogClose asChild>
+                                <Button onClick={handleAssignDCA}>Assign Case</Button>
+                              </DialogClose>
                             </DialogFooter>
                           </DialogContent>
                         </Dialog>
@@ -417,7 +533,7 @@ export default function AdminDashboard() {
                   {dcas.map((d) => (
                     <TableRow key={d.id}>
                       <TableCell className="font-medium">{d.name}</TableCell>
-                      <TableCell>{d.caseCount}</TableCell>
+                      <TableCell>{cases.filter(c => c.assignedDcaId === d.id).length}</TableCell>
                       <TableCell>{(d.recoveryRate * 100).toFixed(0)}%</TableCell>
                       <TableCell>
                         <Dialog>
@@ -488,7 +604,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[...new Set(timetable.map(t => t.date))].map(date => (
+                  {[...new Set(timetable.map(t => t.date))].sort((a, b) => new Date(a).getTime() - new Date(b).getTime()).map(date => (
                     <div key={date}>
                       <h3 className="text-lg font-semibold font-headline mb-2">{format(new Date(date), 'EEEE, MMMM do')}</h3>
                       <div className="border-l-2 border-primary pl-4 space-y-2">
@@ -512,3 +628,5 @@ export default function AdminDashboard() {
     </>
   );
 }
+
+    

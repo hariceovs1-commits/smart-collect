@@ -37,11 +37,11 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { cases, dcas, timetable } from "@/lib/data";
 import type { Case } from "@/lib/types";
 import { suggestCommunicationMode } from "@/ai/flows/suggest-communication-mode";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useAppContext } from "@/context/app-context";
 
 type SuggestionResult = {
   suggestedChannel: 'calling' | 'email' | 'messaging';
@@ -53,6 +53,8 @@ const LOGGED_IN_DCA_ID = 'dca-1';
 
 export default function DcaDashboard() {
   const { toast } = useToast();
+  const { cases, timetable } = useAppContext();
+
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
   const [suggestionResult, setSuggestionResult] = useState<SuggestionResult | null>(null);
   const [isSuggesting, setIsSuggesting] = useState(false);
@@ -231,7 +233,7 @@ export default function DcaDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[...new Set(myTimetable.map(t => t.date))].map(date => (
+                  {[...new Set(myTimetable.map(t => t.date))].sort((a,b) => new Date(a).getTime() - new Date(b).getTime()).map(date => (
                     <div key={date}>
                       <h3 className="text-lg font-semibold font-headline mb-2">{format(new Date(date), 'EEEE, MMMM do')}</h3>
                       <div className="border-l-2 border-primary pl-4 space-y-2">
@@ -254,3 +256,5 @@ export default function DcaDashboard() {
     </>
   );
 }
+
+    
