@@ -175,7 +175,7 @@ export default function DcaDashboard() {
                                   <CardTitle>AI Suggestion</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                  <p className="capitalize"><strong>Suggested Channel:</strong> <Badge variant="default">{suggestionResult.suggestedChannel}</Badge></p>
+                                  <div className="capitalize"><strong>Suggested Channel:</strong> <Badge variant="default">{suggestionResult.suggestedChannel}</Badge></div>
                                   <p className="mt-2"><strong>Reasoning:</strong> {suggestionResult.reasoning}</p>
                                 </CardContent>
                               </Card>
