@@ -88,7 +88,7 @@ export default function LoginPage() {
                       <Label htmlFor="admin-username">Username</Label>
                       <Input
                         id="admin-username"
-                        placeholder="admin@admin.com"
+                        placeholder="admin.com"
                         required
                         value={adminUsername}
                         onChange={(e) => setAdminUsername(e.target.value)}

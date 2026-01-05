@@ -42,7 +42,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = (username: string, password?: string) => {
-    if (username === 'admin@admin.com' && password === 'admin@123') {
+    if (username === 'admin.com' && password === 'admin@123') {
       const adminUser = { id: 'admin', role: 'Admin' as const };
       setLoggedInUser(adminUser);
       localStorage.setItem('loggedInUser', JSON.stringify(adminUser));
@@ -57,7 +57,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       return 'dca';
     }
 
-    if (username === 'admin@admin.com') return 'invalid';
+    if (username === 'admin.com') return 'invalid';
 
     return 'not-found';
   };
