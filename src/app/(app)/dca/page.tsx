@@ -1,0 +1,256 @@
+"use client";
+
+import { useState } from "react";
+import {
+  Briefcase,
+  Calendar,
+  BrainCircuit,
+  Loader2,
+  Send,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { cases, dcas, timetable } from "@/lib/data";
+import type { Case } from "@/lib/types";
+import { suggestCommunicationMode } from "@/ai/flows/suggest-communication-mode";
+import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+
+type SuggestionResult = {
+  suggestedChannel: 'calling' | 'email' | 'messaging';
+  reasoning: string;
+};
+
+// Assume the logged-in DCA is 'dca-1' for this demo
+const LOGGED_IN_DCA_ID = 'dca-1';
+
+export default function DcaDashboard() {
+  const { toast } = useToast();
+  const [selectedCase, setSelectedCase] = useState<Case | null>(null);
+  const [suggestionResult, setSuggestionResult] = useState<SuggestionResult | null>(null);
+  const [isSuggesting, setIsSuggesting] = useState(false);
+  
+  const myCases = cases.filter(c => c.assignedDcaId === LOGGED_IN_DCA_ID);
+  const myTimetable = timetable.filter(t => t.dcaId === LOGGED_IN_DCA_ID);
+  
+  const handleSuggestMode = async () => {
+    if (!selectedCase) return;
+    setIsSuggesting(true);
+    setSuggestionResult(null);
+    try {
+      const result = await suggestCommunicationMode({
+        caseHistory: selectedCase.communicationHistory
+      });
+      setSuggestionResult(result);
+    } catch (error) {
+      console.error("Suggestion failed:", error);
+      toast({
+        variant: "destructive",
+        title: "AI Suggestion Failed",
+        description: "Could not get communication suggestion. Please try again.",
+      });
+    } finally {
+      setIsSuggesting(false);
+    }
+  };
+
+  const handleSendFeedback = () => {
+    if (selectedCase) {
+       toast({
+        title: "Feedback Submitted",
+        description: `Your feedback for case ${selectedCase.id} has been sent.`,
+      });
+    }
+  }
+
+  return (
+    <>
+      <div className="flex items-center">
+        <h1 className="text-lg font-semibold md:text-2xl font-headline">
+          DCA Dashboard
+        </h1>
+      </div>
+      <Tabs defaultValue="cases">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="cases">
+            <Briefcase className="mr-2 h-4 w-4" />
+            My Cases
+          </TabsTrigger>
+          <TabsTrigger value="timetable">
+            <Calendar className="mr-2 h-4 w-4" />
+            My Timetable
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="cases">
+          <Card>
+            <CardHeader>
+              <CardTitle>My Assigned Cases</CardTitle>
+              <CardDescription>
+                Manage your assigned debt collection cases.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Debtor</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Due Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {myCases.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="font-medium">
+                        {c.debtorName}
+                      </TableCell>
+                      <TableCell>${c.dueAmount.toLocaleString()}</TableCell>
+                      <TableCell>{format(new Date(c.dueDate), 'PPP')}</TableCell>
+                      <TableCell>
+                        <Badge variant={c.status === 'Paid' ? 'secondary' : c.status === 'Defaulted' ? 'destructive' : 'outline'}>{c.status}</Badge>
+                      </TableCell>
+                      <TableCell className="space-x-2">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedCase(c);
+                                setSuggestionResult(null);
+                              }}
+                            >
+                              <BrainCircuit className="h-4 w-4 mr-2" />
+                              Suggest Mode
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>AI Communication Suggestion</DialogTitle>
+                              <DialogDescription>
+                                Get an AI-powered suggestion for the best way to contact {selectedCase?.debtorName}.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="py-4 space-y-2">
+                              <p><strong>Case History Summary:</strong></p>
+                              <p className="text-sm text-muted-foreground">{selectedCase?.communicationHistory}</p>
+                            </div>
+                            <Button onClick={handleSuggestMode} disabled={isSuggesting}>
+                              {isSuggesting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                              Get Suggestion
+                            </Button>
+                            {suggestionResult && (
+                              <Card className="mt-4 bg-secondary">
+                                <CardHeader>
+                                  <CardTitle>AI Suggestion</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                  <p className="capitalize"><strong>Suggested Channel:</strong> <Badge variant="default">{suggestionResult.suggestedChannel}</Badge></p>
+                                  <p className="mt-2"><strong>Reasoning:</strong> {suggestionResult.reasoning}</p>
+                                </CardContent>
+                              </Card>
+                            )}
+                          </DialogContent>
+                        </Dialog>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedCase(c)}
+                            >
+                              <Send className="h-4 w-4 mr-2" />
+                              Feedback
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Submit Feedback for {selectedCase?.debtorName}</DialogTitle>
+                              <DialogDescription>
+                                Update the status and provide notes on the case.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-4 py-4">
+                              <div className="grid gap-2">
+                                <Label htmlFor="feedback-notes">Notes</Label>
+                                <Textarea id="feedback-notes" placeholder="e.g., Paid in 3 days, requested extension..." />
+                              </div>
+                            </div>
+                            <DialogFooter>
+                              <Button variant="secondary">Cancel</Button>
+                              <Button onClick={handleSendFeedback}>Submit Feedback</Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="timetable">
+           <Card>
+              <CardHeader>
+                <CardTitle>My Timetable</CardTitle>
+                <CardDescription>
+                  Your scheduled tasks and appointments.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {[...new Set(myTimetable.map(t => t.date))].map(date => (
+                    <div key={date}>
+                      <h3 className="text-lg font-semibold font-headline mb-2">{format(new Date(date), 'EEEE, MMMM do')}</h3>
+                      <div className="border-l-2 border-primary pl-4 space-y-2">
+                        {myTimetable.filter(t => t.date === date).map(task => (
+                           <div key={task.id} className="p-3 rounded-md bg-secondary flex justify-between items-center">
+                             <div>
+                               <p className="font-medium">{task.task}</p>
+                             </div>
+                             <div className="text-sm text-muted-foreground">{task.time}</div>
+                           </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+           </Card>
+        </TabsContent>
+      </Tabs>
+    </>
+  );
+}
