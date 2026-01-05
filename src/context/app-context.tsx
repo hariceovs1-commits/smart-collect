@@ -10,7 +10,8 @@ interface AppContextType {
   timetable: TimetableEntry[];
   addCase: (newCase: Case) => void;
   updateCase: (caseId: string, updates: Partial<Case>) => void;
-  // Add more functions for updating state as needed
+  addDca: (newDca: Dca) => void;
+  updateTimetableEntry: (entryId: string, updates: Partial<TimetableEntry>) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -31,6 +32,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       )
     );
   };
+
+  const addDca = (newDca: Dca) => {
+    setDcas(prevDcas => [...prevDcas, newDca]);
+  };
+
+  const updateTimetableEntry = (entryId: string, updates: Partial<TimetableEntry>) => {
+    setTimetable(prevTimetable =>
+      prevTimetable.map(entry =>
+        entry.id === entryId ? { ...entry, ...updates } : entry
+      )
+    );
+  };
   
   const value = {
     cases,
@@ -38,6 +51,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     timetable,
     addCase,
     updateCase,
+    addDca,
+    updateTimetableEntry,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
@@ -50,5 +65,3 @@ export const useAppContext = () => {
   }
   return context;
 };
-
-    

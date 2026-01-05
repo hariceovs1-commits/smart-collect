@@ -17,6 +17,7 @@ import {
   Phone,
   MessageSquare,
   PlusCircle,
+  Edit,
 } from "lucide-react";
 import {
   Card,
@@ -44,7 +45,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-  DialogClose
+  DialogClose,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -57,7 +58,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-import type { Case, Dca } from "@/lib/types";
+import type { Case, Dca, TimetableEntry } from "@/lib/types";
 import { prioritizeCases } from "@/ai/flows/prioritize-cases";
 import { analyzeDcaPerformance } from "@/ai/flows/analyze-dca-performance";
 import { useToast } from "@/hooks/use-toast";
@@ -74,7 +75,6 @@ import { useAppContext } from "@/context/app-context";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-
 
 type PriorityResult = {
   priorityScore: number;
@@ -96,11 +96,28 @@ const newCaseSchema = z.object({
 
 type NewCaseForm = z.infer<typeof newCaseSchema>;
 
+const newDcaSchema = z.object({
+  name: z.string().min(1, "DCA name is required"),
+  username: z.string().min(1, "Username is required"),
+});
+
+type NewDcaForm = z.infer<typeof newDcaSchema>;
+
+const editTimetableSchema = z.object({
+  task: z.string().min(1, "Task description is required"),
+  date: z.string().min(1, "Date is required"),
+  time: z.string().min(1, "Time is required"),
+});
+
+type EditTimetableForm = z.infer<typeof editTimetableSchema>;
+
 export default function AdminDashboard() {
   const { toast } = useToast();
-  const { cases, dcas, timetable, addCase, updateCase } = useAppContext();
+  const { cases, dcas, timetable, addCase, updateCase, addDca, updateTimetableEntry } = useAppContext();
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
   const [selectedDca, setSelectedDca] = useState<Dca | null>(null);
+  const [selectedTimetableEntry, setSelectedTimetableEntry] = useState<TimetableEntry | null>(null);
+
   const [priorityResult, setPriorityResult] = useState<PriorityResult | null>(
     null
   );
@@ -110,18 +127,22 @@ export default function AdminDashboard() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [assignedDca, setAssignedDca] = useState<string | null>(null);
   const [isAddCaseOpen, setIsAddCaseOpen] = useState(false);
+  const [isAddDcaOpen, setIsAddDcaOpen] = useState(false);
+  const [isEditTimetableOpen, setIsEditTimetableOpen] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors },
-  } = useForm<NewCaseForm>({
+  const newCaseForm = useForm<NewCaseForm>({
     resolver: zodResolver(newCaseSchema),
     defaultValues: {
-      hasOverdueHistory: false
-    }
+      hasOverdueHistory: false,
+    },
+  });
+
+  const newDcaForm = useForm<NewDcaForm>({
+    resolver: zodResolver(newDcaSchema),
+  });
+  
+  const editTimetableForm = useForm<EditTimetableForm>({
+    resolver: zodResolver(editTimetableSchema),
   });
 
   const totalDue = cases.reduce((sum, c) => sum + c.dueAmount, 0);
@@ -201,8 +222,8 @@ export default function AdminDashboard() {
       status: 'Pending',
       priorityScore: null,
       assignedDcaId: null,
-      overdueAging: 0, // Assuming new cases start at 0
-      recoveryRate: 0.8, // Default assumption
+      overdueAging: 0, 
+      recoveryRate: 0.8, 
       communicationHistory: 'No contact made yet.',
       ...data,
     };
@@ -211,9 +232,49 @@ export default function AdminDashboard() {
       title: "Case Created",
       description: `New case for ${data.debtorName} has been added.`,
     });
-    reset();
+    newCaseForm.reset();
     setIsAddCaseOpen(false);
   }
+  
+  const handleAddDca = (data: NewDcaForm) => {
+    const newDca: Dca = {
+      id: `dca-${Date.now()}`,
+      caseCount: 0,
+      recoveryRate: 0,
+      caseHistory: 'New agent.',
+      avatarUrl: `https://picsum.photos/seed/${Date.now()}/100/100`,
+      ...data,
+    };
+    addDca(newDca);
+    toast({
+      title: "DCA Added",
+      description: `New agent ${data.name} has been added.`,
+    });
+    newDcaForm.reset();
+    setIsAddDcaOpen(false);
+  }
+
+  const handleEditTimetable = (data: EditTimetableForm) => {
+    if (selectedTimetableEntry) {
+      updateTimetableEntry(selectedTimetableEntry.id, data);
+      toast({
+        title: "Timetable Updated",
+        description: "The task has been successfully updated.",
+      });
+      setIsEditTimetableOpen(false);
+    }
+  };
+
+  const openEditTimetableDialog = (entry: TimetableEntry) => {
+    setSelectedTimetableEntry(entry);
+    editTimetableForm.reset({
+      task: entry.task,
+      date: entry.date,
+      time: entry.time,
+    });
+    setIsEditTimetableOpen(true);
+  };
+
 
   return (
     <>
@@ -235,33 +296,33 @@ export default function AdminDashboard() {
                 Fill in the details for the new debt collection case.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit(handleAddCase)}>
+            <form onSubmit={newCaseForm.handleSubmit(handleAddCase)}>
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="debtorName" className="text-right">Debtor Name</Label>
-                  <Input id="debtorName" {...register("debtorName")} className="col-span-3" />
-                  {errors.debtorName && <p className="col-span-4 text-xs text-destructive text-right">{errors.debtorName.message}</p>}
+                  <Input id="debtorName" {...newCaseForm.register("debtorName")} className="col-span-3" />
+                  {newCaseForm.formState.errors.debtorName && <p className="col-span-4 text-xs text-destructive text-right">{newCaseForm.formState.errors.debtorName.message}</p>}
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="dueAmount" className="text-right">Amount</Label>
-                  <Input id="dueAmount" type="number" {...register("dueAmount")} className="col-span-3" />
-                   {errors.dueAmount && <p className="col-span-4 text-xs text-destructive text-right">{errors.dueAmount.message}</p>}
+                  <Input id="dueAmount" type="number" {...newCaseForm.register("dueAmount")} className="col-span-3" />
+                   {newCaseForm.formState.errors.dueAmount && <p className="col-span-4 text-xs text-destructive text-right">{newCaseForm.formState.errors.dueAmount.message}</p>}
                 </div>
                  <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="dueDate" className="text-right">Due Date</Label>
-                  <Input id="dueDate" type="date" {...register("dueDate")} className="col-span-3" />
-                  {errors.dueDate && <p className="col-span-4 text-xs text-destructive text-right">{errors.dueDate.message}</p>}
+                  <Input id="dueDate" type="date" {...newCaseForm.register("dueDate")} className="col-span-3" />
+                  {newCaseForm.formState.errors.dueDate && <p className="col-span-4 text-xs text-destructive text-right">{newCaseForm.formState.errors.dueDate.message}</p>}
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="pastHistory" className="text-right">History</Label>
-                  <Textarea id="pastHistory" {...register("pastHistory")} className="col-span-3" />
-                  {errors.pastHistory && <p className="col-span-4 text-xs text-destructive text-right">{errors.pastHistory.message}</p>}
+                  <Textarea id="pastHistory" {...newCaseForm.register("pastHistory")} className="col-span-3" />
+                  {newCaseForm.formState.errors.pastHistory && <p className="col-span-4 text-xs text-destructive text-right">{newCaseForm.formState.errors.pastHistory.message}</p>}
                 </div>
                  <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="hasOverdueHistory" className="text-right">Prev. Overdue</Label>
                   <Controller
                     name="hasOverdueHistory"
-                    control={control}
+                    control={newCaseForm.control}
                     render={({ field }) => (
                       <input type="checkbox" checked={field.value} onChange={field.onChange} className="col-span-3" />
                     )}
@@ -513,17 +574,54 @@ export default function AdminDashboard() {
 
         <TabsContent value="dcas">
            <Card>
-            <CardHeader>
-              <CardTitle>DCA Management</CardTitle>
-              <CardDescription>
-                Analyze performance of Debt Collection Agents.
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>DCA Management</CardTitle>
+                <CardDescription>
+                  Analyze performance of Debt Collection Agents.
+                </CardDescription>
+              </div>
+               <Dialog open={isAddDcaOpen} onOpenChange={setIsAddDcaOpen}>
+                  <DialogTrigger asChild>
+                     <Button size="sm">
+                        <PlusCircle className="mr-2" />
+                        Add DCA
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Add New DCA</DialogTitle>
+                      <DialogDescription>
+                        Enter the details for the new Debt Collection Agent.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={newDcaForm.handleSubmit(handleAddDca)}>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="name" className="text-right">Name</Label>
+                          <Input id="name" {...newDcaForm.register("name")} className="col-span-3" />
+                          {newDcaForm.formState.errors.name && <p className="col-span-4 text-xs text-destructive text-right">{newDcaForm.formState.errors.name.message}</p>}
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="username" className="text-right">Username</Label>
+                          <Input id="username" {...newDcaForm.register("username")} className="col-span-3" />
+                           {newDcaForm.formState.errors.username && <p className="col-span-4 text-xs text-destructive text-right">{newDcaForm.formState.errors.username.message}</p>}
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <DialogClose asChild><Button variant="secondary">Cancel</Button></DialogClose>
+                        <Button type="submit">Add DCA</Button>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Agent</TableHead>
+                    <TableHead>Username</TableHead>
                     <TableHead>Cases</TableHead>
                     <TableHead>Recovery Rate</TableHead>
                     <TableHead>Actions</TableHead>
@@ -533,6 +631,7 @@ export default function AdminDashboard() {
                   {dcas.map((d) => (
                     <TableRow key={d.id}>
                       <TableCell className="font-medium">{d.name}</TableCell>
+                      <TableCell>{d.username}</TableCell>
                       <TableCell>{cases.filter(c => c.assignedDcaId === d.id).length}</TableCell>
                       <TableCell>{(d.recoveryRate * 100).toFixed(0)}%</TableCell>
                       <TableCell>
@@ -610,11 +709,14 @@ export default function AdminDashboard() {
                       <div className="border-l-2 border-primary pl-4 space-y-2">
                         {timetable.filter(t => t.date === date).map(task => (
                            <div key={task.id} className="p-3 rounded-md bg-secondary flex justify-between items-center">
-                             <div>
+                             <div className="flex-1">
                                <p className="font-medium">{task.task}</p>
                                <p className="text-sm text-muted-foreground">{dcas.find(d => d.id === task.dcaId)?.name}</p>
                              </div>
-                             <div className="text-sm text-muted-foreground">{task.time}</div>
+                              <div className="text-sm text-muted-foreground mr-4">{task.time}</div>
+                              <Button variant="ghost" size="icon" onClick={() => openEditTimetableDialog(task)}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
                            </div>
                         ))}
                       </div>
@@ -623,10 +725,41 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
            </Card>
+           <Dialog open={isEditTimetableOpen} onOpenChange={setIsEditTimetableOpen}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Edit Timetable Entry</DialogTitle>
+                <DialogDescription>
+                  Update the details for this scheduled task.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={editTimetableForm.handleSubmit(handleEditTimetable)}>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="task" className="text-right">Task</Label>
+                    <Textarea id="task" {...editTimetableForm.register("task")} className="col-span-3" />
+                    {editTimetableForm.formState.errors.task && <p className="col-span-4 text-xs text-destructive text-right">{editTimetableForm.formState.errors.task.message}</p>}
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="date" className="text-right">Date</Label>
+                    <Input id="date" type="date" {...editTimetableForm.register("date")} className="col-span-3" />
+                    {editTimetableForm.formState.errors.date && <p className="col-span-4 text-xs text-destructive text-right">{editTimetableForm.formState.errors.date.message}</p>}
+                  </div>
+                   <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="time" className="text-right">Time</Label>
+                    <Input id="time" type="time" {...editTimetableForm.register("time")} className="col-span-3" />
+                    {editTimetableForm.formState.errors.time && <p className="col-span-4 text-xs text-destructive text-right">{editTimetableForm.formState.errors.time.message}</p>}
+                  </div>
+                </div>
+                <DialogFooter>
+                  <DialogClose asChild><Button variant="secondary">Cancel</Button></DialogClose>
+                  <Button type="submit">Save Changes</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+           </Dialog>
         </TabsContent>
       </Tabs>
     </>
   );
 }
-
-    

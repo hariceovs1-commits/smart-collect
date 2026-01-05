@@ -1,10 +1,10 @@
 import type { Dca, Case, TimetableEntry } from './types';
 
 export const dcas: Dca[] = [
-  { id: 'dca-1', name: 'John Doe', avatarUrl: 'https://picsum.photos/seed/101/100/100', caseCount: 5, recoveryRate: 0.85, caseHistory: 'Handled 20 cases in the last quarter with a high success rate on debts under $1000. Prefers email communication.' },
-  { id: 'dca-2', name: 'Jane Smith', avatarUrl: 'https://picsum.photos/seed/102/100/100', caseCount: 8, recoveryRate: 0.72, caseHistory: 'Specializes in large overdue accounts. Has a lower recovery rate but handles high-value debts. Most effective with phone calls.' },
-  { id: 'dca-3', name: 'Mike Johnson', avatarUrl: 'https://picsum.photos/seed/103/100/100', caseCount: 3, recoveryRate: 0.91, caseHistory: 'New agent with an excellent track record on recent cases. Very responsive via messaging and email.' },
-  { id: 'dca-4', name: 'Sarah Williams', avatarUrl: 'https://picsum.photos/seed/104/100/100', caseCount: 12, recoveryRate: 0.65, caseHistory: 'Experienced agent handling a high volume of cases. Recovery rate is average but consistent across different types of debt.' },
+  { id: 'dca-1', name: 'John Doe', username: 'johndoe', avatarUrl: 'https://picsum.photos/seed/101/100/100', caseCount: 5, recoveryRate: 0.85, caseHistory: 'Handled 20 cases in the last quarter with a high success rate on debts under $1000. Prefers email communication.' },
+  { id: 'dca-2', name: 'Jane Smith', username: 'janesmith', avatarUrl: 'https://picsum.photos/seed/102/100/100', caseCount: 8, recoveryRate: 0.72, caseHistory: 'Specializes in large overdue accounts. Has a lower recovery rate but handles high-value debts. Most effective with phone calls.' },
+  { id: 'dca-3', name: 'Mike Johnson', username: 'mikejohnson', avatarUrl: 'https://picsum.photos/seed/103/100/100', caseCount: 3, recoveryRate: 0.91, caseHistory: 'New agent with an excellent track record on recent cases. Very responsive via messaging and email.' },
+  { id: 'dca-4', name: 'Sarah Williams', username: 'sarahwilliams', avatarUrl: 'https://picsum.photos/seed/104/100/100', caseCount: 12, recoveryRate: 0.65, caseHistory: 'Experienced agent handling a high volume of cases. Recovery rate is average but consistent across different types of debt.' },
 ];
 
 export const cases: Case[] = [
@@ -17,9 +17,9 @@ export const cases: Case[] = [
 ];
 
 export const timetable: TimetableEntry[] = [
-    { id: 'task-1', dcaId: 'dca-1', date: '2024-07-29', task: 'Follow up with Alice Brown (case-001)', time: '10:00 AM' },
-    { id: 'task-2', dcaId: 'dca-2', date: '2024-07-29', task: 'Attempt phone contact with Bob Green (case-002)', time: '11:30 AM' },
-    { id: 'task-3', dcaId: 'dca-1', date: '2024-07-29', task: 'Review new case assignments', time: '02:00 PM' },
-    { id: 'task-4', dcaId: 'dca-2', date: '2024-07-30', task: 'Prepare report for high-value overdue accounts', time: '09:00 AM' },
-    { id: 'task-5', dcaId: 'dca-3', date: '2024-07-30', task: 'Initial contact for new cases', time: '10:00 AM' },
+    { id: 'task-1', dcaId: 'dca-1', date: '2024-07-29', task: 'Follow up with Alice Brown (case-001)', time: '10:00' },
+    { id: 'task-2', dcaId: 'dca-2', date: '2024-07-29', task: 'Attempt phone contact with Bob Green (case-002)', time: '11:30' },
+    { id: 'task-3', dcaId: 'dca-1', date: '2024-07-29', task: 'Review new case assignments', time: '14:00' },
+    { id: 'task-4', dcaId: 'dca-2', date: '2024-07-30', task: 'Prepare report for high-value overdue accounts', time: '09:00' },
+    { id: 'task-5', dcaId: 'dca-3', date: '2024-07-30', task: 'Initial contact for new cases', time: '10:00' },
 ];

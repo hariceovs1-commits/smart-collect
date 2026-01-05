@@ -16,6 +16,7 @@ export type Case = {
 export type Dca = {
   id: string;
   name: string;
+  username: string;
   avatarUrl: string;
   caseCount: number;
   recoveryRate: number;
