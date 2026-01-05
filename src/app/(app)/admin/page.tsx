@@ -103,17 +103,19 @@ const newDcaSchema = z.object({
 
 type NewDcaForm = z.infer<typeof newDcaSchema>;
 
-const editTimetableSchema = z.object({
+const timetableSchema = z.object({
   task: z.string().min(1, "Task description is required"),
   date: z.string().min(1, "Date is required"),
   time: z.string().min(1, "Time is required"),
+  dcaId: z.string().min(1, "You must assign a DCA"),
 });
 
-type EditTimetableForm = z.infer<typeof editTimetableSchema>;
+type TimetableForm = z.infer<typeof timetableSchema>;
+
 
 export default function AdminDashboard() {
   const { toast } = useToast();
-  const { cases, dcas, timetable, addCase, updateCase, addDca, updateTimetableEntry } = useAppContext();
+  const { cases, dcas, timetable, addCase, updateCase, addDca, updateTimetableEntry, addTimetableEntry } = useAppContext();
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
   const [selectedDca, setSelectedDca] = useState<Dca | null>(null);
   const [selectedTimetableEntry, setSelectedTimetableEntry] = useState<TimetableEntry | null>(null);
@@ -129,6 +131,7 @@ export default function AdminDashboard() {
   const [isAddCaseOpen, setIsAddCaseOpen] = useState(false);
   const [isAddDcaOpen, setIsAddDcaOpen] = useState(false);
   const [isEditTimetableOpen, setIsEditTimetableOpen] = useState(false);
+  const [isAddScheduleOpen, setIsAddScheduleOpen] = useState(false);
 
   const newCaseForm = useForm<NewCaseForm>({
     resolver: zodResolver(newCaseSchema),
@@ -141,8 +144,8 @@ export default function AdminDashboard() {
     resolver: zodResolver(newDcaSchema),
   });
   
-  const editTimetableForm = useForm<EditTimetableForm>({
-    resolver: zodResolver(editTimetableSchema),
+  const timetableForm = useForm<TimetableForm>({
+    resolver: zodResolver(timetableSchema),
   });
 
   const totalDue = cases.reduce((sum, c) => sum + c.dueAmount, 0);
@@ -254,7 +257,7 @@ export default function AdminDashboard() {
     setIsAddDcaOpen(false);
   }
 
-  const handleEditTimetable = (data: EditTimetableForm) => {
+  const handleEditTimetable = (data: TimetableForm) => {
     if (selectedTimetableEntry) {
       updateTimetableEntry(selectedTimetableEntry.id, data);
       toast({
@@ -265,12 +268,27 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleAddSchedule = (data: TimetableForm) => {
+    const newEntry: TimetableEntry = {
+      id: `task-${Date.now()}`,
+      ...data
+    };
+    addTimetableEntry(newEntry);
+    toast({
+      title: "Task Scheduled",
+      description: `New task "${data.task}" has been scheduled.`,
+    });
+    timetableForm.reset();
+    setIsAddScheduleOpen(false);
+  };
+
   const openEditTimetableDialog = (entry: TimetableEntry) => {
     setSelectedTimetableEntry(entry);
-    editTimetableForm.reset({
+    timetableForm.reset({
       task: entry.task,
       date: entry.date,
       time: entry.time,
+      dcaId: entry.dcaId,
     });
     setIsEditTimetableOpen(true);
   };
@@ -695,11 +713,74 @@ export default function AdminDashboard() {
 
         <TabsContent value="timetable">
            <Card>
-              <CardHeader>
-                <CardTitle>Team Timetable</CardTitle>
-                <CardDescription>
-                  Overview of scheduled tasks for all agents.
-                </CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Team Timetable</CardTitle>
+                  <CardDescription>
+                    Overview of scheduled tasks for all agents.
+                  </CardDescription>
+                </div>
+                <Dialog open={isAddScheduleOpen} onOpenChange={setIsAddScheduleOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm">
+                      <PlusCircle className="mr-2" />
+                      Add Task
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Add New Task</DialogTitle>
+                      <DialogDescription>
+                        Schedule a new task for a DCA.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={timetableForm.handleSubmit(handleAddSchedule)}>
+                      <div className="grid gap-4 py-4">
+                         <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="dcaId" className="text-right">Assign to</Label>
+                          <Controller
+                            name="dcaId"
+                            control={timetableForm.control}
+                            render={({ field }) => (
+                               <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <SelectTrigger className="col-span-3">
+                                  <SelectValue placeholder="Select a DCA" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {dcas.map((dca) => (
+                                    <SelectItem key={dca.id} value={dca.id}>
+                                      {dca.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                           />
+                           {timetableForm.formState.errors.dcaId && <p className="col-span-4 text-xs text-destructive text-right">{timetableForm.formState.errors.dcaId.message}</p>}
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="task" className="text-right">Task</Label>
+                          <Textarea id="task" {...timetableForm.register("task")} className="col-span-3" />
+                           {timetableForm.formState.errors.task && <p className="col-span-4 text-xs text-destructive text-right">{timetableForm.formState.errors.task.message}</p>}
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="date" className="text-right">Date</Label>
+                          <Input id="date" type="date" {...timetableForm.register("date")} className="col-span-3" />
+                           {timetableForm.formState.errors.date && <p className="col-span-4 text-xs text-destructive text-right">{timetableForm.formState.errors.date.message}</p>}
+                        </div>
+                         <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="time" className="text-right">Time</Label>
+                          <Input id="time" type="time" {...timetableForm.register("time")} className="col-span-3" />
+                           {timetableForm.formState.errors.time && <p className="col-span-4 text-xs text-destructive text-right">{timetableForm.formState.errors.time.message}</p>}
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <DialogClose asChild><Button variant="secondary">Cancel</Button></DialogClose>
+                        <Button type="submit">Schedule Task</Button>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -707,7 +788,7 @@ export default function AdminDashboard() {
                     <div key={date}>
                       <h3 className="text-lg font-semibold font-headline mb-2">{format(new Date(date), 'EEEE, MMMM do')}</h3>
                       <div className="border-l-2 border-primary pl-4 space-y-2">
-                        {timetable.filter(t => t.date === date).map(task => (
+                        {timetable.filter(t => t.date === date).sort((a,b) => a.time.localeCompare(b.time)).map(task => (
                            <div key={task.id} className="p-3 rounded-md bg-secondary flex justify-between items-center">
                              <div className="flex-1">
                                <p className="font-medium">{task.task}</p>
@@ -733,22 +814,44 @@ export default function AdminDashboard() {
                   Update the details for this scheduled task.
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={editTimetableForm.handleSubmit(handleEditTimetable)}>
+              <form onSubmit={timetableForm.handleSubmit(handleEditTimetable)}>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="task" className="text-right">Task</Label>
-                    <Textarea id="task" {...editTimetableForm.register("task")} className="col-span-3" />
-                    {editTimetableForm.formState.errors.task && <p className="col-span-4 text-xs text-destructive text-right">{editTimetableForm.formState.errors.task.message}</p>}
+                    <Label htmlFor="dcaId-edit" className="text-right">Assign to</Label>
+                    <Controller
+                        name="dcaId"
+                        control={timetableForm.control}
+                        render={({ field }) => (
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger id="dcaId-edit" className="col-span-3">
+                                <SelectValue placeholder="Select a DCA" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {dcas.map((dca) => (
+                                <SelectItem key={dca.id} value={dca.id}>
+                                    {dca.name}
+                                </SelectItem>
+                                ))}
+                            </SelectContent>
+                            </Select>
+                        )}
+                        />
+                    {timetableForm.formState.errors.dcaId && <p className="col-span-4 text-xs text-destructive text-right">{timetableForm.formState.errors.dcaId.message}</p>}
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="date" className="text-right">Date</Label>
-                    <Input id="date" type="date" {...editTimetableForm.register("date")} className="col-span-3" />
-                    {editTimetableForm.formState.errors.date && <p className="col-span-4 text-xs text-destructive text-right">{editTimetableForm.formState.errors.date.message}</p>}
+                    <Label htmlFor="task-edit" className="text-right">Task</Label>
+                    <Textarea id="task-edit" {...timetableForm.register("task")} className="col-span-3" />
+                    {timetableForm.formState.errors.task && <p className="col-span-4 text-xs text-destructive text-right">{timetableForm.formState.errors.task.message}</p>}
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="date-edit" className="text-right">Date</Label>
+                    <Input id="date-edit" type="date" {...timetableForm.register("date")} className="col-span-3" />
+                    {timetableForm.formState.errors.date && <p className="col-span-4 text-xs text-destructive text-right">{timetableForm.formState.errors.date.message}</p>}
                   </div>
                    <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="time" className="text-right">Time</Label>
-                    <Input id="time" type="time" {...editTimetableForm.register("time")} className="col-span-3" />
-                    {editTimetableForm.formState.errors.time && <p className="col-span-4 text-xs text-destructive text-right">{editTimetableForm.formState.errors.time.message}</p>}
+                    <Label htmlFor="time-edit" className="text-right">Time</Label>
+                    <Input id="time-edit" type="time" {...timetableForm.register("time")} className="col-span-3" />
+                    {timetableForm.formState.errors.time && <p className="col-span-4 text-xs text-destructive text-right">{timetableForm.formState.errors.time.message}</p>}
                   </div>
                 </div>
                 <DialogFooter>

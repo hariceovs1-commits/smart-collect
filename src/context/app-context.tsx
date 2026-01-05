@@ -17,6 +17,7 @@ interface AppContextType {
   updateCase: (caseId: string, updates: Partial<Case>) => void;
   addDca: (newDca: Dca) => void;
   updateTimetableEntry: (entryId: string, updates: Partial<TimetableEntry>) => void;
+  addTimetableEntry: (newEntry: TimetableEntry) => void;
   setLoggedInUser: (user: LoggedInUser | null) => void;
   login: (username: string, password?: string) => 'admin' | 'dca' | 'not-found' | 'invalid';
 }
@@ -95,6 +96,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       )
     );
   };
+
+  const addTimetableEntry = (newEntry: TimetableEntry) => {
+    setTimetable(prevTimetable => [...prevTimetable, newEntry]);
+  };
   
   const value = {
     cases,
@@ -106,6 +111,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     updateCase,
     addDca,
     updateTimetableEntry,
+    addTimetableEntry,
     setLoggedInUser: handleSetLoggedInUser,
     login,
   };
