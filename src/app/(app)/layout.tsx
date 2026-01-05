@@ -9,10 +9,10 @@ import { Icons } from "@/components/icons";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, Loader2 } from "lucide-react";
-import { AppProvider, useAppContext } from "@/context/app-context";
+import { useAppContext } from "@/context/app-context";
 import type { Dca } from "@/lib/types";
 
-function AppLayoutContent({ children }: { children: React.ReactNode }) {
+export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { loggedInUser, dcas, isLoading, setLoggedInUser } = useAppContext();
@@ -102,14 +102,5 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
         </main>
       </div>
     </div>
-  );
-}
-
-
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-   return (
-    <AppProvider>
-      <AppLayoutContent>{children}</AppLayoutContent>
-    </AppProvider>
   );
 }
