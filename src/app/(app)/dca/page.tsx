@@ -48,19 +48,20 @@ type SuggestionResult = {
   reasoning: string;
 };
 
-// Assume the logged-in DCA is 'dca-1' for this demo
-const LOGGED_IN_DCA_ID = 'dca-1';
-
 export default function DcaDashboard() {
   const { toast } = useToast();
-  const { cases, timetable } = useAppContext();
+  const { cases, timetable, loggedInUser } = useAppContext();
 
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
   const [suggestionResult, setSuggestionResult] = useState<SuggestionResult | null>(null);
   const [isSuggesting, setIsSuggesting] = useState(false);
   
-  const myCases = cases.filter(c => c.assignedDcaId === LOGGED_IN_DCA_ID);
-  const myTimetable = timetable.filter(t => t.dcaId === LOGGED_IN_DCA_ID);
+  if (!loggedInUser || loggedInUser.role !== 'DCA') {
+      return null;
+  }
+  
+  const myCases = cases.filter(c => c.assignedDcaId === loggedInUser.id);
+  const myTimetable = timetable.filter(t => t.dcaId === loggedInUser.id);
   
   const handleSuggestMode = async () => {
     if (!selectedCase) return;
@@ -177,7 +178,7 @@ export default function DcaDashboard() {
                                   <CardTitle>AI Suggestion</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                  <div className="capitalize"><strong>Suggested Channel:</strong> <Badge variant="default">{suggestionResult.suggestedChannel}</Badge></div>
+                                  <div className="capitalize flex items-center gap-2"><strong>Suggested Channel:</strong> <Badge variant="default">{suggestionResult.suggestedChannel}</Badge></div>
                                   <p className="mt-2"><strong>Reasoning:</strong> {suggestionResult.reasoning}</p>
                                 </CardContent>
                               </Card>
@@ -256,5 +257,3 @@ export default function DcaDashboard() {
     </>
   );
 }
-
-    

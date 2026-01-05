@@ -13,29 +13,26 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { LogOut, User } from "lucide-react";
+import type { Dca } from "@/lib/types";
 
 type UserNavProps = {
   user: {
     name: string;
     email: string;
     role: "Admin" | "DCA";
+    avatarUrl: string;
   };
+  onLogout: () => void;
 };
 
-export function UserNav({ user }: UserNavProps) {
-  const avatar =
-    user.role === "Admin"
-      ? PlaceHolderImages.find((img) => img.id === "avatar-5")
-      : PlaceHolderImages.find((img) => img.id === "avatar-6");
-
+export function UserNav({ user, onLogout }: UserNavProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            {avatar && <AvatarImage src={avatar.imageUrl} alt={user.name} />}
+            <AvatarImage src={user.avatarUrl} alt={user.name} />
             <AvatarFallback>
               {user.name
                 .split(" ")
@@ -62,11 +59,9 @@ export function UserNav({ user }: UserNavProps) {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/">
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Switch Role</span>
-          </Link>
+        <DropdownMenuItem onClick={onLogout}>
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
