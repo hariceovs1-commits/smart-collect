@@ -19,6 +19,7 @@ import {
   PlusCircle,
   Edit,
   MessageCircleQuestion,
+  CheckCircle2,
 } from "lucide-react";
 import {
   Card,
@@ -162,7 +163,7 @@ export default function AdminDashboard() {
   ];
   
   const unresolvedCases = cases.filter(c => !c.feedback);
-  const respondedCases = cases.filter(c => !!c.feedback);
+  const respondedCases = cases.filter(c => !!c.feedback && c.status !== 'Paid' && c.status !== 'Defaulted');
 
   const handlePrioritize = async () => {
     if (!selectedCase) return;
@@ -295,6 +296,14 @@ export default function AdminDashboard() {
       dcaId: entry.dcaId,
     });
     setIsEditTimetableOpen(true);
+  };
+
+  const handleMarkAsPaid = (caseId: string) => {
+    updateCase(caseId, { status: 'Paid' });
+    toast({
+      title: "Case Updated",
+      description: "The case has been marked as Paid.",
+    });
   };
 
 
@@ -603,7 +612,7 @@ export default function AdminDashboard() {
             <CardHeader>
               <CardTitle>Case Responses</CardTitle>
               <CardDescription>
-                Review cases that have received feedback from DCAs.
+                Review cases that have received feedback from DCAs and mark them as resolved.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -615,6 +624,7 @@ export default function AdminDashboard() {
                     <TableHead>Response Mode</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Feedback</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -634,6 +644,16 @@ export default function AdminDashboard() {
                       </TableCell>
                       <TableCell>
                         {c.feedback}
+                      </TableCell>
+                       <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleMarkAsPaid(c.id)}
+                        >
+                          <CheckCircle2 className="mr-2 h-4 w-4" />
+                          Mark as Paid
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -822,8 +842,7 @@ export default function AdminDashboard() {
                            {timetableForm.formState.errors.date && <p className="col-span-4 text-xs text-destructive text-right">{timetableForm.formState.errors.date.message}</p>}
                         </div>
                          <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="time" className="text-right">Time</Label>
-                          <Input id="time" type="time" {...timetableForm.register("time")} className="col-span-3" />
+                          <Label htmlFor="time" className="text-right">Time</Label>                          <Input id="time" type="time" {...timetableForm.register("time")} className="col-span-3" />
                            {timetableForm.formState.errors.time && <p className="col-span-4 text-xs text-destructive text-right">{timetableForm.formState.errors.time.message}</p>}
                         </div>
                       </div>
