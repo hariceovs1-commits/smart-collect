@@ -78,12 +78,35 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateCase = (caseId: string, updates: Partial<Case>) => {
-    setCases(prevCases => 
-      prevCases.map(c => 
-        c.id === caseId ? { ...c, ...updates } : c
-      )
-    );
+    setCases(prevCases => {
+        const newCases = prevCases.map(c => 
+          c.id === caseId ? { ...c, ...updates } : c
+        );
+
+        if (updates.status === 'Paid') {
+            const paidCase = newCases.find(c => c.id === caseId);
+            if (paidCase && paidCase.assignedDcaId) {
+                setDcas(prevDcas => prevDcas.map(dca => {
+                    if (dca.id === paidCase.assignedDcaId) {
+                        const totalCases = (dca.caseCount || 0) + 1;
+                        const successfulCases = (dca.caseCount * dca.recoveryRate) + 1;
+                        const newRecoveryRate = successfulCases / totalCases;
+                        const newCaseHistory = `${dca.caseHistory}\n- Solved case: ${paidCase.debtorName}, Amount: $${paidCase.dueAmount}, Status: Paid.`;
+                        return { 
+                            ...dca, 
+                            caseCount: totalCases, 
+                            recoveryRate: newRecoveryRate,
+                            caseHistory: newCaseHistory,
+                        };
+                    }
+                    return dca;
+                }));
+            }
+        }
+        return newCases;
+    });
   };
+
 
   const addDca = (newDca: Dca) => {
     setDcas(prevDcas => [...prevDcas, newDca]);

@@ -64,7 +64,7 @@ export default function DcaDashboard() {
       return null;
   }
   
-  const myCases = cases.filter(c => c.assignedDcaId === loggedInUser.id && !c.feedback);
+  const myCases = cases.filter(c => c.assignedDcaId === loggedInUser.id && c.status !== 'Paid' && c.status !== 'Defaulted');
   const myTimetable = timetable.filter(t => t.dcaId === loggedInUser.id);
   
   const handleSuggestMode = async () => {
@@ -90,7 +90,7 @@ export default function DcaDashboard() {
 
   const handleSendFeedback = () => {
     if (selectedCase && feedbackNotes && responseMode) {
-       updateCase(selectedCase.id, { feedback: feedbackNotes, responseMode: responseMode });
+       updateCase(selectedCase.id, { feedback: feedbackNotes, responseMode: responseMode, status: 'In Progress' });
        toast({
         title: "Feedback Submitted",
         description: `Your feedback for case ${selectedCase.id} has been sent.`,
@@ -139,7 +139,7 @@ export default function DcaDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {myCases.map((c) => (
+                  {myCases.filter(c => !c.feedback).map((c) => (
                     <TableRow key={c.id}>
                       <TableCell className="font-medium">
                         {c.debtorName}
