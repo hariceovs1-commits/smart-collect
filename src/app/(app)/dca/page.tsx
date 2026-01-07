@@ -34,6 +34,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,11 +51,12 @@ type SuggestionResult = {
 
 export default function DcaDashboard() {
   const { toast } = useToast();
-  const { cases, timetable, loggedInUser } = useAppContext();
+  const { cases, timetable, loggedInUser, updateCase } = useAppContext();
 
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
   const [suggestionResult, setSuggestionResult] = useState<SuggestionResult | null>(null);
   const [isSuggesting, setIsSuggesting] = useState(false);
+  const [feedbackNotes, setFeedbackNotes] = useState('');
   
   if (!loggedInUser || loggedInUser.role !== 'DCA') {
       return null;
@@ -85,11 +87,13 @@ export default function DcaDashboard() {
   };
 
   const handleSendFeedback = () => {
-    if (selectedCase) {
+    if (selectedCase && feedbackNotes) {
+       updateCase(selectedCase.id, { feedback: feedbackNotes });
        toast({
         title: "Feedback Submitted",
         description: `Your feedback for case ${selectedCase.id} has been sent.`,
       });
+      setFeedbackNotes('');
     }
   }
 
@@ -206,12 +210,14 @@ export default function DcaDashboard() {
                             <div className="grid gap-4 py-4">
                               <div className="grid gap-2">
                                 <Label htmlFor="feedback-notes">Notes</Label>
-                                <Textarea id="feedback-notes" placeholder="e.g., Paid in 3 days, requested extension..." />
+                                <Textarea id="feedback-notes" placeholder="e.g., Paid in 3 days, requested extension..." value={feedbackNotes} onChange={(e) => setFeedbackNotes(e.target.value)} />
                               </div>
                             </div>
                             <DialogFooter>
-                              <Button variant="secondary">Cancel</Button>
-                              <Button onClick={handleSendFeedback}>Submit Feedback</Button>
+                              <DialogClose asChild><Button variant="secondary">Cancel</Button></DialogClose>
+                              <DialogClose asChild>
+                                <Button onClick={handleSendFeedback} disabled={!feedbackNotes}>Submit Feedback</Button>
+                              </DialogClose>
                             </DialogFooter>
                           </DialogContent>
                         </Dialog>

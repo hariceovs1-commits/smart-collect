@@ -11,6 +11,7 @@ export type Case = {
   recoveryRate: number;
   hasOverdueHistory: boolean;
   communicationHistory: string;
+  feedback?: string;
 };
 
 export type Dca = {

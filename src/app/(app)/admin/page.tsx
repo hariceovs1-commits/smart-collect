@@ -18,6 +18,7 @@ import {
   MessageSquare,
   PlusCircle,
   Edit,
+  MessageCircleQuestion,
 } from "lucide-react";
 import {
   Card,
@@ -159,6 +160,9 @@ export default function AdminDashboard() {
     { name: "Paid", value: cases.filter((c) => c.status === "Paid").length },
     { name: "Defaulted", value: cases.filter((c) => c.status === "Defaulted").length },
   ];
+  
+  const unresolvedCases = cases.filter(c => !c.feedback);
+  const respondedCases = cases.filter(c => !!c.feedback);
 
   const handlePrioritize = async () => {
     if (!selectedCase) return;
@@ -358,7 +362,7 @@ export default function AdminDashboard() {
         </Dialog>
       </div>
       <Tabs defaultValue="overview">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">
             <TrendingUp className="mr-2 h-4 w-4" />
             Overview
@@ -366,6 +370,10 @@ export default function AdminDashboard() {
           <TabsTrigger value="cases">
             <Briefcase className="mr-2 h-4 w-4" />
             Case Management
+          </TabsTrigger>
+          <TabsTrigger value="responses">
+            <MessageCircleQuestion className="mr-2 h-4 w-4" />
+            Responses
           </TabsTrigger>
           <TabsTrigger value="dcas">
             <Users className="mr-2 h-4 w-4" />
@@ -465,9 +473,9 @@ export default function AdminDashboard() {
         <TabsContent value="cases">
           <Card>
             <CardHeader>
-              <CardTitle>All Cases</CardTitle>
+              <CardTitle>Unresolved Cases</CardTitle>
               <CardDescription>
-                Manage, assign, and prioritize debt collection cases.
+                Manage, assign, and prioritize debt collection cases that have no feedback yet.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -483,7 +491,7 @@ export default function AdminDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {cases.map((c) => (
+                  {unresolvedCases.map((c) => (
                     <TableRow key={c.id}>
                       <TableCell className="font-medium">
                         {c.debtorName}
@@ -581,6 +589,47 @@ export default function AdminDashboard() {
                             )}
                           </DialogContent>
                         </Dialog>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="responses">
+          <Card>
+            <CardHeader>
+              <CardTitle>Case Responses</CardTitle>
+              <CardDescription>
+                Review cases that have received feedback from DCAs.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Debtor</TableHead>
+                    <TableHead>Assigned DCA</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Feedback</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {respondedCases.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="font-medium">
+                        {c.debtorName}
+                      </TableCell>
+                      <TableCell>
+                        {dcas.find((d) => d.id === c.assignedDcaId)?.name}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={c.status === 'Paid' ? 'secondary' : c.status === 'Defaulted' ? 'destructive' : 'outline'}>{c.status}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        {c.feedback}
                       </TableCell>
                     </TableRow>
                   ))}
