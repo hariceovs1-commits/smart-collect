@@ -12,6 +12,7 @@ export type Case = {
   hasOverdueHistory: boolean;
   communicationHistory: string;
   feedback?: string;
+  responseMode?: 'calling' | 'email' | 'messaging';
 };
 
 export type Dca = {

@@ -612,6 +612,7 @@ export default function AdminDashboard() {
                   <TableRow>
                     <TableHead>Debtor</TableHead>
                     <TableHead>Assigned DCA</TableHead>
+                    <TableHead>Response Mode</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Feedback</TableHead>
                   </TableRow>
@@ -624,6 +625,9 @@ export default function AdminDashboard() {
                       </TableCell>
                       <TableCell>
                         {dcas.find((d) => d.id === c.assignedDcaId)?.name}
+                      </TableCell>
+                      <TableCell className="capitalize">
+                        {c.responseMode}
                       </TableCell>
                       <TableCell>
                         <Badge variant={c.status === 'Paid' ? 'secondary' : c.status === 'Defaulted' ? 'destructive' : 'outline'}>{c.status}</Badge>

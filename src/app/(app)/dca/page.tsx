@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { Case } from "@/lib/types";
 import { suggestCommunicationMode } from "@/ai/flows/suggest-communication-mode";
 import { useToast } from "@/hooks/use-toast";
@@ -57,6 +58,7 @@ export default function DcaDashboard() {
   const [suggestionResult, setSuggestionResult] = useState<SuggestionResult | null>(null);
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [feedbackNotes, setFeedbackNotes] = useState('');
+  const [responseMode, setResponseMode] = useState<'calling' | 'email' | 'messaging' | undefined>();
   
   if (!loggedInUser || loggedInUser.role !== 'DCA') {
       return null;
@@ -87,13 +89,14 @@ export default function DcaDashboard() {
   };
 
   const handleSendFeedback = () => {
-    if (selectedCase && feedbackNotes) {
-       updateCase(selectedCase.id, { feedback: feedbackNotes });
+    if (selectedCase && feedbackNotes && responseMode) {
+       updateCase(selectedCase.id, { feedback: feedbackNotes, responseMode: responseMode });
        toast({
         title: "Feedback Submitted",
         description: `Your feedback for case ${selectedCase.id} has been sent.`,
       });
       setFeedbackNotes('');
+      setResponseMode(undefined);
     }
   }
 
@@ -209,6 +212,23 @@ export default function DcaDashboard() {
                             </DialogHeader>
                             <div className="grid gap-4 py-4">
                               <div className="grid gap-2">
+                                <Label>Mode of Response</Label>
+                                <RadioGroup onValueChange={(value) => setResponseMode(value as 'calling' | 'email' | 'messaging')} value={responseMode} className="flex space-x-4">
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="calling" id="calling" />
+                                        <Label htmlFor="calling">Calling</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="email" id="email" />
+                                        <Label htmlFor="email">Email</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="messaging" id="messaging" />
+                                        <Label htmlFor="messaging">Messaging</Label>
+                                    </div>
+                                </RadioGroup>
+                              </div>
+                              <div className="grid gap-2">
                                 <Label htmlFor="feedback-notes">Notes</Label>
                                 <Textarea id="feedback-notes" placeholder="e.g., Paid in 3 days, requested extension..." value={feedbackNotes} onChange={(e) => setFeedbackNotes(e.target.value)} />
                               </div>
@@ -216,7 +236,7 @@ export default function DcaDashboard() {
                             <DialogFooter>
                               <DialogClose asChild><Button variant="secondary">Cancel</Button></DialogClose>
                               <DialogClose asChild>
-                                <Button onClick={handleSendFeedback} disabled={!feedbackNotes}>Submit Feedback</Button>
+                                <Button onClick={handleSendFeedback} disabled={!feedbackNotes || !responseMode}>Submit Feedback</Button>
                               </DialogClose>
                             </DialogFooter>
                           </DialogContent>
