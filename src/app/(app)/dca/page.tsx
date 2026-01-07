@@ -64,7 +64,7 @@ export default function DcaDashboard() {
       return null;
   }
   
-  const myCases = cases.filter(c => c.assignedDcaId === loggedInUser.id);
+  const myCases = cases.filter(c => c.assignedDcaId === loggedInUser.id && !c.feedback);
   const myTimetable = timetable.filter(t => t.dcaId === loggedInUser.id);
   
   const handleSuggestMode = async () => {
