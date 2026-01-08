@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -57,7 +58,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/" className="flex items-center gap-2 font-semibold">
-              <Icons.Logo className="h-6 w-6 text-primary" />
               <span className="font-headline text-lg">Smart Collect</span>
             </Link>
           </div>
@@ -85,7 +85,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   href="/"
                   className="flex items-center gap-2 font-semibold"
                 >
-                  <Icons.Logo className="h-6 w-6 text-primary" />
                   <span className="font-headline text-lg">Smart Collect</span>
                 </Link>
               </div>
