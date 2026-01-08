@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, User } from "lucide-react";
 import type { Dca } from "@/lib/types";
+import { Icons } from "./icons";
 
 type UserNavProps = {
   user: {
@@ -33,7 +34,13 @@ export function UserNav({ user, onLogout }: UserNavProps) {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={user.avatarUrl} alt={user.name} />
+            <AvatarImage src={user.avatarUrl} alt={user.name} asChild>
+              {user.avatarUrl === "/placeholder.svg" ? (
+                <Icons.Logo className="h-full w-full" />
+              ) : (
+                <Image src={user.avatarUrl} alt={user.name} width={36} height={36} />
+              )}
+            </AvatarImage>
             <AvatarFallback>
               {user.name
                 .split(" ")

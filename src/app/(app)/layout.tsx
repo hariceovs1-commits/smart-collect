@@ -48,7 +48,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         name: "Admin User",
         email: "admin@smartcollect.com",
         role: "Admin" as const,
-        avatarUrl: "https://picsum.photos/seed/admin/100/100",
+        avatarUrl: "/placeholder.svg",
       };
 
   return (
