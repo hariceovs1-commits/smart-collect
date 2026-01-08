@@ -8,7 +8,6 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-secondary/50">
       <header className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center gap-2">
-          <Icons.Logo className="h-8 w-8 text-primary" />
           <h1 className="text-2xl font-bold font-headline text-primary">
             Smart Collect
           </h1>
