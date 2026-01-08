@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
@@ -91,7 +92,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                         const totalCases = (dca.caseCount || 0) + 1;
                         const successfulCases = (dca.caseCount * dca.recoveryRate) + 1;
                         const newRecoveryRate = successfulCases / totalCases;
-                        const newCaseHistory = `${dca.caseHistory}\n- Solved case: ${paidCase.debtorName}, Amount: $${paidCase.dueAmount}, Status: Paid.`;
+                        const newCaseHistory = `${dca.caseHistory}\n- Solved case: ${paidCase.debtorName}, Amount: ₹${paidCase.dueAmount}, Status: Paid.`;
                         return { 
                             ...dca, 
                             caseCount: totalCases, 
@@ -149,3 +150,5 @@ export const useAppContext = () => {
   }
   return context;
 };
+
+    

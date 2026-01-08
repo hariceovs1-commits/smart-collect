@@ -410,7 +410,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${totalDue.toLocaleString()}
+                  ₹{totalDue.toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Across all active cases
@@ -511,7 +511,7 @@ export default function AdminDashboard() {
                       <TableCell className="font-medium">
                         {c.debtorName}
                       </TableCell>
-                      <TableCell>${c.dueAmount.toLocaleString()}</TableCell>
+                      <TableCell>₹{c.dueAmount.toLocaleString()}</TableCell>
                       <TableCell>
                         <Badge variant={c.status === 'Paid' ? 'secondary' : c.status === 'Defaulted' ? 'destructive' : 'outline'}>{c.status}</Badge>
                       </TableCell>
@@ -583,7 +583,7 @@ export default function AdminDashboard() {
                             </DialogHeader>
                             <div className="py-4 space-y-4">
                                <p><strong>Debtor:</strong> {selectedCase?.debtorName}</p>
-                               <p><strong>Amount:</strong> ${selectedCase?.dueAmount.toLocaleString()}</p>
+                               <p><strong>Amount:</strong> ₹{selectedCase?.dueAmount.toLocaleString()}</p>
                                <p><strong>Overdue:</strong> {selectedCase?.overdueAging} days</p>
                                <p><strong>Past History:</strong> {selectedCase?.hasOverdueHistory ? 'Yes' : 'No'}</p>
                             </div>
@@ -944,3 +944,5 @@ export default function AdminDashboard() {
     </>
   );
 }
+
+    

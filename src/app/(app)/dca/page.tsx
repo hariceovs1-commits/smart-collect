@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -144,7 +145,7 @@ export default function DcaDashboard() {
                       <TableCell className="font-medium">
                         {c.debtorName}
                       </TableCell>
-                      <TableCell>${c.dueAmount.toLocaleString()}</TableCell>
+                      <TableCell>₹{c.dueAmount.toLocaleString()}</TableCell>
                       <TableCell>{format(new Date(c.dueDate), 'PPP')}</TableCell>
                       <TableCell>
                         <Badge variant={c.status === 'Paid' ? 'secondary' : c.status === 'Defaulted' ? 'destructive' : 'outline'}>{c.status}</Badge>
@@ -283,3 +284,5 @@ export default function DcaDashboard() {
     </>
   );
 }
+
+    
