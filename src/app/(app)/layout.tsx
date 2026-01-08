@@ -46,8 +46,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         avatarUrl: (loggedInUser as Dca).avatarUrl,
       }
     : {
-        name: "Admin User",
-        email: "admin@smartcollect.com",
+        name: "Admin",
+        email: loggedInUser.id,
         role: "Admin" as const,
         avatarUrl: "/placeholder.svg",
       };

@@ -6,7 +6,7 @@ import type { Case, Dca, TimetableEntry } from '@/lib/types';
 import { cases as initialCases, dcas as initialDcas, timetable as initialTimetable } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 
-type LoggedInUser = (Dca & { role: 'DCA' }) | { id: 'admin'; role: 'Admin' };
+type LoggedInUser = (Dca & { role: 'DCA' }) | { id: string; role: 'Admin' };
 
 interface AppContextType {
   cases: Case[];
@@ -45,7 +45,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const login = (username: string, password?: string) => {
     if (username === 'admin.com' && password === 'admin@123') {
-      const adminUser = { id: 'admin', role: 'Admin' as const };
+      const adminUser = { id: username, role: 'Admin' as const };
       setLoggedInUser(adminUser);
       localStorage.setItem('loggedInUser', JSON.stringify(adminUser));
       return 'admin';
@@ -150,5 +150,3 @@ export const useAppContext = () => {
   }
   return context;
 };
-
-    
