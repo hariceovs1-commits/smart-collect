@@ -21,6 +21,7 @@ import {
   Edit,
   MessageCircleQuestion,
   CheckCircle2,
+  Trash2,
 } from "lucide-react";
 import {
   Card,
@@ -50,6 +51,17 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -119,7 +131,7 @@ type TimetableForm = z.infer<typeof timetableSchema>;
 
 export default function AdminDashboard() {
   const { toast } = useToast();
-  const { cases, dcas, timetable, addCase, updateCase, addDca, updateTimetableEntry, addTimetableEntry } = useAppContext();
+  const { cases, dcas, timetable, addCase, updateCase, addDca, updateTimetableEntry, addTimetableEntry, removeDca } = useAppContext();
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
   const [selectedDca, setSelectedDca] = useState<Dca | null>(null);
   const [selectedTimetableEntry, setSelectedTimetableEntry] = useState<TimetableEntry | null>(null);
@@ -266,6 +278,14 @@ export default function AdminDashboard() {
     });
     newDcaForm.reset();
     setIsAddDcaOpen(false);
+  }
+
+  const handleRemoveDca = (dcaId: string, dcaName: string) => {
+    removeDca(dcaId);
+    toast({
+      title: "DCA Removed",
+      description: `Agent ${dcaName} has been removed. Their cases are now unassigned.`,
+    });
   }
 
   const handleEditTimetable = (data: TimetableForm) => {
@@ -727,7 +747,7 @@ export default function AdminDashboard() {
                     <TableHead>Username</TableHead>
                     <TableHead>Cases</TableHead>
                     <TableHead>Recovery Rate</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -737,7 +757,7 @@ export default function AdminDashboard() {
                       <TableCell>{d.username}</TableCell>
                       <TableCell>{cases.filter(c => c.assignedDcaId === d.id).length}</TableCell>
                       <TableCell>{(d.recoveryRate * 100).toFixed(0)}%</TableCell>
-                      <TableCell>
+                      <TableCell className="text-right space-x-2">
                         <Dialog>
                           <DialogTrigger asChild>
                              <Button
@@ -749,7 +769,7 @@ export default function AdminDashboard() {
                               }}
                             >
                               <BrainCircuit className="h-4 w-4 mr-2" />
-                              Analyze Performance
+                              Analyze
                             </Button>
                           </DialogTrigger>
                           <DialogContent className="max-w-2xl">
@@ -787,6 +807,28 @@ export default function AdminDashboard() {
                             )}
                           </DialogContent>
                         </Dialog>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Remove
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently remove the agent <span className="font-bold">{d.name}</span> and unassign all their cases.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleRemoveDca(d.id, d.name)}>
+                                Continue
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -950,5 +992,3 @@ export default function AdminDashboard() {
     </>
   );
 }
-
-    

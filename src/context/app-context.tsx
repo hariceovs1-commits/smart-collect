@@ -17,6 +17,7 @@ interface AppContextType {
   addCase: (newCase: Case) => void;
   updateCase: (caseId: string, updates: Partial<Case>) => void;
   addDca: (newDca: Dca) => void;
+  removeDca: (dcaId: string) => void;
   updateTimetableEntry: (entryId: string, updates: Partial<TimetableEntry>) => void;
   addTimetableEntry: (newEntry: TimetableEntry) => void;
   setLoggedInUser: (user: LoggedInUser | null) => void;
@@ -119,6 +120,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setDcas(prevDcas => [...prevDcas, newDca]);
   };
 
+  const removeDca = (dcaId: string) => {
+    setDcas(prevDcas => prevDcas.filter(d => d.id !== dcaId));
+    // Unassign cases from the removed DCA
+    setCases(prevCases => prevCases.map(c => 
+      c.assignedDcaId === dcaId ? { ...c, assignedDcaId: null, status: 'Pending' } : c
+    ));
+    // Remove timetable entries for the removed DCA
+    setTimetable(prevTimetable => prevTimetable.filter(t => t.dcaId !== dcaId));
+  };
+
+
   const updateTimetableEntry = (entryId: string, updates: Partial<TimetableEntry>) => {
     setTimetable(prevTimetable =>
       prevTimetable.map(entry =>
@@ -140,6 +152,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     addCase,
     updateCase,
     addDca,
+    removeDca,
     updateTimetableEntry,
     addTimetableEntry,
     setLoggedInUser: handleSetLoggedInUser,
