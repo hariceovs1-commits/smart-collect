@@ -65,9 +65,6 @@ export default function LoginPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-secondary/50">
       <div className="w-full max-w-md mx-auto">
-         <div className="flex justify-center mb-6">
-            <Icons.Logo className="h-10 w-10 text-primary" />
-        </div>
         <Tabs defaultValue={defaultTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="admin">Admin</TabsTrigger>
