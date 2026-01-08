@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -64,7 +65,14 @@ export default function LoginPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-secondary/50">
-      <div className="w-full max-w-md mx-auto">
+      <div className="w-full max-w-md mx-auto p-4">
+        <div className="flex flex-col items-center justify-center mb-6 text-center">
+            <Icons.Logo className="h-10 w-10 text-primary mb-2" />
+            <h1 className="text-2xl font-bold font-headline text-primary">
+                Smart Collect
+            </h1>
+            <p className="text-sm text-muted-foreground">AI-Powered Debt Collection Management</p>
+        </div>
         <Tabs defaultValue={defaultTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="admin">Admin</TabsTrigger>
