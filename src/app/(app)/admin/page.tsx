@@ -154,12 +154,15 @@ export default function AdminDashboard() {
   const overdueCases = cases.filter(
     (c) => c.status === "In Progress" || c.status === "Defaulted"
   ).length;
+  
+  const assignedCasesCount = cases.filter(c => c.assignedDcaId).length;
+  const notAssignedCasesCount = cases.filter(c => !c.assignedDcaId).length;
+  const solvedCasesCount = cases.filter(c => c.status === 'Paid').length;
 
   const chartData = [
-    { name: "Pending", value: cases.filter((c) => c.status === "Pending").length },
-    { name: "In Progress", value: overdueCases },
-    { name: "Paid", value: cases.filter((c) => c.status === "Paid").length },
-    { name: "Defaulted", value: cases.filter((c) => c.status === "Defaulted").length },
+    { name: "Assigned", value: assignedCasesCount },
+    { name: "Not Assigned", value: notAssignedCasesCount },
+    { name: "Solved", value: solvedCasesCount },
   ];
   
   const unresolvedCases = cases.filter(c => !c.feedback);
@@ -456,7 +459,7 @@ export default function AdminDashboard() {
               <CardHeader>
                 <CardTitle>Case Status Overview</CardTitle>
                 <CardDescription>
-                  A summary of cases by their current status.
+                  A summary of cases by their assignment and resolution status.
                 </CardDescription>
               </CardHeader>
               <CardContent className="h-[350px]">
