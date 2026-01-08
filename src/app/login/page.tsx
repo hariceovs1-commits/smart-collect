@@ -109,7 +109,7 @@ export default function LoginPage() {
                         id="admin-password"
                         type="password"
                         required
-                        placeholder="admin@123"
+                        placeholder="Password"
                         value={adminPassword}
                         onChange={(e) => setAdminPassword(e.target.value)}
                         disabled={isLoading}
