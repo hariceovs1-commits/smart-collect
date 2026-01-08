@@ -67,7 +67,6 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-secondary/50">
       <div className="w-full max-w-md mx-auto p-4">
         <div className="flex flex-col items-center justify-center mb-6 text-center">
-            <Icons.Logo className="h-10 w-10 text-primary mb-2" />
             <h1 className="text-2xl font-bold font-headline text-primary">
                 Smart Collect
             </h1>
