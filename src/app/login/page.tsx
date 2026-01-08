@@ -24,9 +24,10 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { login } = useAppContext();
-  const [adminUsername, setAdminUsername] = useState("");
-  const [adminPassword, setAdminPassword] = useState("");
+  const [adminUsername, setAdminUsername] = useState("admin.com");
+  const [adminPassword, setAdminPassword] = useState("admin@123");
   const [dcaUsername, setDcaUsername] = useState("");
+  const [dcaPassword, setDcaPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const defaultTab = searchParams.get('role') || 'admin';
@@ -52,10 +53,13 @@ export default function LoginPage() {
     setIsLoading(true);
     // Simulate network delay
     setTimeout(() => {
-      const result = login(dcaUsername);
+      const result = login(dcaUsername, dcaPassword);
       if (result === 'dca') {
         toast({ title: "Login Successful", description: "Redirecting to DCA dashboard..." });
         router.push("/dca");
+      } else if (result === 'invalid') {
+        toast({ variant: "destructive", title: "Login Failed", description: "Invalid password." });
+        setIsLoading(false);
       } else {
         toast({ variant: "destructive", title: "Login Failed", description: "DCA username not found." });
         setIsLoading(false);
@@ -125,7 +129,7 @@ export default function LoginPage() {
               <CardHeader>
                 <CardTitle>DCA Login</CardTitle>
                 <CardDescription>
-                  Enter your DCA username to access your cases.
+                  Enter your DCA username and password to access your cases.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -139,6 +143,17 @@ export default function LoginPage() {
                         required
                         value={dcaUsername}
                         onChange={(e) => setDcaUsername(e.target.value)}
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="dca-password">Password</Label>
+                      <Input
+                        id="dca-password"
+                        type="password"
+                        required
+                        value={dcaPassword}
+                        onChange={(e) => setDcaPassword(e.target.value)}
                         disabled={isLoading}
                       />
                     </div>

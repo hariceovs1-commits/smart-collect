@@ -102,6 +102,7 @@ type NewCaseForm = z.infer<typeof newCaseSchema>;
 const newDcaSchema = z.object({
   name: z.string().min(1, "DCA name is required"),
   username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
 });
 
 type NewDcaForm = z.infer<typeof newDcaSchema>;
@@ -703,6 +704,11 @@ export default function AdminDashboard() {
                           <Label htmlFor="username" className="text-right">Username</Label>
                           <Input id="username" {...newDcaForm.register("username")} className="col-span-3" />
                            {newDcaForm.formState.errors.username && <p className="col-span-4 text-xs text-destructive text-right">{newDcaForm.formState.errors.username.message}</p>}
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="password" className="text-right">Password</Label>
+                          <Input id="password" type="password" {...newDcaForm.register("password")} className="col-span-3" />
+                           {newDcaForm.formState.errors.password && <p className="col-span-4 text-xs text-destructive text-right">{newDcaForm.formState.errors.password.message}</p>}
                         </div>
                       </div>
                       <DialogFooter>

@@ -6,7 +6,7 @@ import type { Case, Dca, TimetableEntry } from '@/lib/types';
 import { cases as initialCases, dcas as initialDcas, timetable as initialTimetable } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 
-type LoggedInUser = (Dca & { role: 'DCA' }) | { id: string; role: 'Admin' };
+type LoggedInUser = (Dca & { role: 'DCA' }) | { id: string; name: string, role: 'Admin' };
 
 interface AppContextType {
   cases: Case[];
@@ -44,19 +44,25 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = (username: string, password?: string) => {
+    // Admin login
     if (username === 'admin.com' && password === 'admin@123') {
-      const adminUser = { id: username, role: 'Admin' as const };
+      const adminUser = { id: username, name: 'Admin', role: 'Admin' as const };
       setLoggedInUser(adminUser);
       localStorage.setItem('loggedInUser', JSON.stringify(adminUser));
       return 'admin';
     }
     
+    // DCA login
     const dca = dcas.find(d => d.username === username);
     if (dca) {
-      const dcaUser = { ...dca, role: 'DCA' as const };
-      setLoggedInUser(dcaUser);
-      localStorage.setItem('loggedInUser', JSON.stringify(dcaUser));
-      return 'dca';
+      if (dca.password === password) {
+        const dcaUser = { ...dca, role: 'DCA' as const };
+        setLoggedInUser(dcaUser);
+        localStorage.setItem('loggedInUser', JSON.stringify(dcaUser));
+        return 'dca';
+      } else {
+        return 'invalid'; // Correct user, wrong password
+      }
     }
 
     if (username === 'admin.com') return 'invalid';
