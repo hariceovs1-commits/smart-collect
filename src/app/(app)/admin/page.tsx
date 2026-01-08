@@ -103,9 +103,9 @@ type DcaAnalysisResult = {
 
 const newCaseSchema = z.object({
   debtorName: z.string().min(1, "Debtor name is required"),
+  invoiceNo: z.string().min(1, "Invoice number is required"),
   dueAmount: z.coerce.number().min(1, "Due amount must be positive"),
   dueDate: z.string().min(1, "Due date is required"),
-  pastHistory: z.string().min(1, "Past history is required"),
   hasOverdueHistory: z.boolean(),
 });
 
@@ -189,7 +189,6 @@ export default function AdminDashboard() {
     try {
       const result = await prioritizeCases({
         overdueAging: selectedCase.overdueAging,
-        pastHistory: selectedCase.pastHistory,
         dueAmount: selectedCase.dueAmount,
         recoveryRate: selectedCase.recoveryRate,
         hasOverdueHistory: selectedCase.hasOverdueHistory,
@@ -268,7 +267,6 @@ export default function AdminDashboard() {
       caseCount: 0,
       recoveryRate: 0,
       caseHistory: 'New agent.',
-      avatarUrl: `https://picsum.photos/seed/${Date.now()}/100/100`,
       ...data,
     };
     addDca(newDca);
@@ -361,6 +359,11 @@ export default function AdminDashboard() {
                   {newCaseForm.formState.errors.debtorName && <p className="col-span-4 text-xs text-destructive text-right">{newCaseForm.formState.errors.debtorName.message}</p>}
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="invoiceNo" className="text-right">Invoice #</Label>
+                  <Input id="invoiceNo" {...newCaseForm.register("invoiceNo")} className="col-span-3" />
+                  {newCaseForm.formState.errors.invoiceNo && <p className="col-span-4 text-xs text-destructive text-right">{newCaseForm.formState.errors.invoiceNo.message}</p>}
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="dueAmount" className="text-right">Amount</Label>
                   <Input id="dueAmount" type="number" {...newCaseForm.register("dueAmount")} className="col-span-3" />
                    {newCaseForm.formState.errors.dueAmount && <p className="col-span-4 text-xs text-destructive text-right">{newCaseForm.formState.errors.dueAmount.message}</p>}
@@ -369,11 +372,6 @@ export default function AdminDashboard() {
                   <Label htmlFor="dueDate" className="text-right">Due Date</Label>
                   <Input id="dueDate" type="date" {...newCaseForm.register("dueDate")} className="col-span-3" />
                   {newCaseForm.formState.errors.dueDate && <p className="col-span-4 text-xs text-destructive text-right">{newCaseForm.formState.errors.dueDate.message}</p>}
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="pastHistory" className="text-right">History</Label>
-                  <Textarea id="pastHistory" {...newCaseForm.register("pastHistory")} className="col-span-3" />
-                  {newCaseForm.formState.errors.pastHistory && <p className="col-span-4 text-xs text-destructive text-right">{newCaseForm.formState.errors.pastHistory.message}</p>}
                 </div>
                  <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="hasOverdueHistory" className="text-right">Prev. Overdue</Label>
@@ -519,6 +517,7 @@ export default function AdminDashboard() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Debtor</TableHead>
+                    <TableHead>Invoice #</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Priority</TableHead>
@@ -532,6 +531,7 @@ export default function AdminDashboard() {
                       <TableCell className="font-medium">
                         {c.debtorName}
                       </TableCell>
+                       <TableCell>{c.invoiceNo}</TableCell>
                       <TableCell>₹{c.dueAmount.toLocaleString()}</TableCell>
                       <TableCell>
                         <Badge variant={c.status === 'Paid' ? 'secondary' : c.status === 'Defaulted' ? 'destructive' : 'outline'}>{c.status}</Badge>
@@ -604,6 +604,7 @@ export default function AdminDashboard() {
                             </DialogHeader>
                             <div className="py-4 space-y-4">
                                <p><strong>Debtor:</strong> {selectedCase?.debtorName}</p>
+                               <p><strong>Invoice #:</strong> {selectedCase?.invoiceNo}</p>
                                <p><strong>Amount:</strong> ₹{selectedCase?.dueAmount.toLocaleString()}</p>
                                <p><strong>Overdue:</strong> {selectedCase?.overdueAging} days</p>
                                <p><strong>Past History:</strong> {selectedCase?.hasOverdueHistory ? 'Yes' : 'No'}</p>
@@ -647,6 +648,7 @@ export default function AdminDashboard() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Debtor</TableHead>
+                    <TableHead>Invoice #</TableHead>
                     <TableHead>Assigned DCA</TableHead>
                     <TableHead>Response Mode</TableHead>
                     <TableHead>Status</TableHead>
@@ -660,6 +662,7 @@ export default function AdminDashboard() {
                       <TableCell className="font-medium">
                         {c.debtorName}
                       </TableCell>
+                      <TableCell>{c.invoiceNo}</TableCell>
                       <TableCell>
                         {dcas.find((d) => d.id === c.assignedDcaId)?.name}
                       </TableCell>

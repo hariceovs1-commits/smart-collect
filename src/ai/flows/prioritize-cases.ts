@@ -15,11 +15,6 @@ const CaseInputSchema = z.object({
   overdueAging: z
     .number()
     .describe('The number of days the debt is overdue.'),
-  pastHistory: z
-    .string()
-    .describe(
-      'A summary of the debt case history, including payment behavior and communication logs.'
-    ),
   dueAmount: z.number().describe('The total amount of debt due.'),
   recoveryRate: z
     .number()
@@ -61,7 +56,6 @@ const prompt = ai.definePrompt({
   Analyze the following case data to determine its priority. Cases with no prior overdue history should be marked as high priority.
 
   Overdue Aging: {{overdueAging}} days
-  Past History: {{pastHistory}}
   Due Amount: {{dueAmount}}
   Recovery Rate: {{recoveryRate}}
   Has Overdue History: {{hasOverdueHistory}}

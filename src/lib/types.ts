@@ -1,13 +1,13 @@
 export type Case = {
   id: string;
   debtorName: string;
+  invoiceNo: string;
   dueAmount: number;
   dueDate: string;
   status: 'Pending' | 'In Progress' | 'Paid' | 'Defaulted';
   priorityScore: number | null;
   assignedDcaId: string | null;
   overdueAging: number;
-  pastHistory: string;
   recoveryRate: number;
   hasOverdueHistory: boolean;
   communicationHistory: string;
@@ -20,7 +20,6 @@ export type Dca = {
   name: string;
   username: string;
   password: string;
-  avatarUrl: string;
   caseCount: number;
   recoveryRate: number;
   caseHistory: string;

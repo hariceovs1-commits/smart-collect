@@ -94,7 +94,7 @@ export default function DcaDashboard() {
        updateCase(selectedCase.id, { feedback: feedbackNotes, responseMode: responseMode, status: 'In Progress' });
        toast({
         title: "Feedback Submitted",
-        description: `Your feedback for case ${selectedCase.id} has been sent.`,
+        description: `Your feedback for case ${selectedCase.invoiceNo} has been sent.`,
       });
       setFeedbackNotes('');
       setResponseMode(undefined);
@@ -133,6 +133,7 @@ export default function DcaDashboard() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Debtor</TableHead>
+                    <TableHead>Invoice #</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Due Date</TableHead>
                     <TableHead>Status</TableHead>
@@ -145,6 +146,7 @@ export default function DcaDashboard() {
                       <TableCell className="font-medium">
                         {c.debtorName}
                       </TableCell>
+                       <TableCell>{c.invoiceNo}</TableCell>
                       <TableCell>₹{c.dueAmount.toLocaleString()}</TableCell>
                       <TableCell>{format(new Date(c.dueDate), 'PPP')}</TableCell>
                       <TableCell>
@@ -206,7 +208,7 @@ export default function DcaDashboard() {
                           </DialogTrigger>
                           <DialogContent>
                             <DialogHeader>
-                              <DialogTitle>Submit Feedback for {selectedCase?.debtorName}</DialogTitle>
+                              <DialogTitle>Submit Feedback for {selectedCase?.debtorName} ({selectedCase?.invoiceNo})</DialogTitle>
                               <DialogDescription>
                                 Update the status and provide notes on the case.
                               </DialogDescription>
