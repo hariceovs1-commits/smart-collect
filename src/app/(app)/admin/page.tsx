@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -72,7 +73,7 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { useAppContext } from "@/context/app-context";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -150,14 +151,14 @@ export default function AdminDashboard() {
     resolver: zodResolver(timetableSchema),
   });
 
-  const totalDue = cases.reduce((sum, c) => sum + c.dueAmount, 0);
+  const totalDue = cases.reduce((sum, c) => c.dueAmount, 0);
   const overdueCases = cases.filter(
     (c) => c.status === "In Progress" || c.status === "Defaulted"
   ).length;
   
-  const assignedCasesCount = cases.filter(c => c.assignedDcaId).length;
-  const notAssignedCasesCount = cases.filter(c => !c.assignedDcaId).length;
   const solvedCasesCount = cases.filter(c => c.status === 'Paid').length;
+  const assignedCasesCount = cases.filter(c => c.assignedDcaId && c.status !== 'Paid').length;
+  const notAssignedCasesCount = cases.filter(c => !c.assignedDcaId).length;
 
   const chartData = [
     { name: "Assigned", value: assignedCasesCount },
@@ -228,12 +229,13 @@ export default function AdminDashboard() {
   }
 
   const handleAddCase = (data: NewCaseForm) => {
+    const overdueAging = differenceInDays(new Date(), new Date(data.dueDate));
     const newCase: Case = {
       id: `case-${Date.now()}`,
       status: 'Pending',
       priorityScore: null,
       assignedDcaId: null,
-      overdueAging: 0, 
+      overdueAging: overdueAging > 0 ? overdueAging : 0, 
       recoveryRate: 0.8, 
       communicationHistory: 'No contact made yet.',
       ...data,
