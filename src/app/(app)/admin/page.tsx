@@ -70,8 +70,8 @@ import {
   BarChart,
   Bar,
   XAxis,
-  YAxis,
   Tooltip,
+  LabelList,
 } from "recharts";
 import { format, differenceInDays } from "date-fns";
 import { useAppContext } from "@/context/app-context";
@@ -466,9 +466,8 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent className="h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
+                  <BarChart data={chartData} margin={{ top: 20 }}>
                     <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: "hsl(var(--background))",
@@ -476,7 +475,9 @@ export default function AdminDashboard() {
                         borderRadius: "var(--radius)",
                       }}
                     />
-                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
+                       <LabelList dataKey="value" position="top" className="fill-foreground" fontSize={12} />
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
