@@ -22,9 +22,9 @@ const CaseInputSchema = z.object({
       'The historical recovery rate for similar cases, expressed as a percentage (e.g., 0.75 for 75%).'
     ),
   hasOverdueHistory: z
-    .boolean()
+    .number()
     .describe(
-      'Whether the case has overdue history or not, true if yes and false if no.'
+      'The number of times the debtor has been overdue in the past.'
     ),
 });
 export type CaseInput = z.infer<typeof CaseInputSchema>;
@@ -53,19 +53,20 @@ const prompt = ai.definePrompt({
   output: {schema: CaseOutputSchema},
   prompt: `You are an AI assistant that prioritizes debt collection cases.
 
-  Analyze the following case data to determine its priority. Cases with no prior overdue history should be marked as high priority.
+  Analyze the following case data to determine its priority. Cases with no prior overdue history (a value of 0) should be marked as high priority.
 
   Overdue Aging: {{overdueAging}} days
   Due Amount: {{dueAmount}}
   Recovery Rate: {{recoveryRate}}
-  Has Overdue History: {{hasOverdueHistory}}
+  Previous Overdue Count: {{hasOverdueHistory}}
 
   Based on this information, assign a priority score between 0 and 100 (higher is more urgent) and explain your reasoning.
 
   Consider these guidelines:
   - Higher overdue aging and due amount generally increase priority.
   - Lower recovery rates increase priority.
-  - Cases with no overdue history should be prioritized as high.
+  - Cases with a higher number of previous overdues should have a higher priority.
+  - Cases with no overdue history (0) should be prioritized as high.
 
   Ensure the output is in JSON format.
 `,
