@@ -87,9 +87,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const updateCase = (caseId: string, updates: Partial<Case>) => {
     setCases(prevCases => {
-        const newCases = prevCases.map(c => 
-          c.id === caseId ? { ...c, ...updates } : c
-        );
+        const newCases = prevCases.map(c => {
+          if (c.id === caseId) {
+            const updatedCase = { ...c, ...updates };
+            if (updates.responseMode) {
+              const historyPrefix = c.communicationHistory === 'No contact made yet.' ? '' : `${c.communicationHistory}\n`;
+              updatedCase.communicationHistory = `${historyPrefix}- Responded to ${updates.responseMode}.`;
+            }
+            return updatedCase;
+          }
+          return c;
+        });
 
         if (updates.status === 'Paid') {
             const paidCase = newCases.find(c => c.id === caseId);
