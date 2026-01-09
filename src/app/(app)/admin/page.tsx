@@ -106,7 +106,7 @@ const newCaseSchema = z.object({
   invoiceNo: z.string().min(1, "Invoice number is required"),
   dueAmount: z.coerce.number().min(1, "Due amount must be positive"),
   dueDate: z.string().min(1, "Due date is required"),
-  hasOverdueHistory: z.boolean(),
+  hasOverdueHistory: z.coerce.number().min(0, "Cannot be negative"),
 });
 
 type NewCaseForm = z.infer<typeof newCaseSchema>;
@@ -152,7 +152,7 @@ export default function AdminDashboard() {
   const newCaseForm = useForm<NewCaseForm>({
     resolver: zodResolver(newCaseSchema),
     defaultValues: {
-      hasOverdueHistory: false,
+      hasOverdueHistory: 0,
     },
   });
 
@@ -374,14 +374,9 @@ export default function AdminDashboard() {
                   {newCaseForm.formState.errors.dueDate && <p className="col-span-4 text-xs text-destructive text-right">{newCaseForm.formState.errors.dueDate.message}</p>}
                 </div>
                  <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="hasOverdueHistory" className="text-right">Prev. Overdue</Label>
-                  <Controller
-                    name="hasOverdueHistory"
-                    control={newCaseForm.control}
-                    render={({ field }) => (
-                      <input type="checkbox" checked={field.value} onChange={field.onChange} className="col-span-3" />
-                    )}
-                  />
+                  <Label htmlFor="hasOverdueHistory" className="text-right">Prev. Overdue Count</Label>
+                  <Input id="hasOverdueHistory" type="number" {...newCaseForm.register("hasOverdueHistory")} className="col-span-3" />
+                  {newCaseForm.formState.errors.hasOverdueHistory && <p className="col-span-4 text-xs text-destructive text-right">{newCaseForm.formState.errors.hasOverdueHistory.message}</p>}
                 </div>
               </div>
               <DialogFooter>
@@ -607,7 +602,7 @@ export default function AdminDashboard() {
                                <p><strong>Invoice #:</strong> {selectedCase?.invoiceNo}</p>
                                <p><strong>Amount:</strong> ₹{selectedCase?.dueAmount.toLocaleString()}</p>
                                <p><strong>Overdue:</strong> {selectedCase?.overdueAging} days</p>
-                               <p><strong>Past History:</strong> {selectedCase?.hasOverdueHistory ? 'Yes' : 'No'}</p>
+                               <p><strong>Past Overdue Count:</strong> {selectedCase?.hasOverdueHistory}</p>
                             </div>
                             <Button onClick={handlePrioritize} disabled={isPrioritizing}>
                               {isPrioritizing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -995,3 +990,5 @@ export default function AdminDashboard() {
     </>
   );
 }
+
+    
